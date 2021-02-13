@@ -44,15 +44,18 @@ type BuildResult =
 
 spawn :: BuildOptions -> Aff { cmdBins :: Array Executable, cp :: Maybe ChildProcess }
 spawn { command: Command cmd args, directory, useNpmDir } = do
-  pathVar <- liftEffect $ getPathVar useNpmDir directory
-  cmdBins <- findBins pathVar cmd
-  cp <- liftEffect $ case uncons cmdBins of
-    Just { head: Executable cmdBin _ } -> do
-      env <- liftEffect getEnv
-      let childEnv = Object.insert "PATH" (either identity identity pathVar) env
-      Just <$> CP.spawn cmdBin args (CP.defaultSpawnOptions { cwd = Just directory, env = Just childEnv })
-    _ -> pure Nothing
+  -- pathVar <- liftEffect $ getPathVar useNpmDir directory
+  -- cmdBins <- findBins pathVar cmd
+  cp <- liftEffect -- $ case uncons cmdBins of
+    -- Just { head: Executable cmdBin _ } -> do
+    do
+      -- env <- liftEffect getEnv
+      -- let childEnv = Object.insert "PATH" (either identity identity pathVar) env
+      Just <$> CP.spawn cmd args (CP.defaultSpawnOptions { cwd = Just directory, env = Nothing })
+    -- _ -> pure Nothing
+  let cmdBins = [ Executable cmd Nothing ]
   pure { cmdBins, cp }
+
 
 build :: Notify -> BuildOptions -> Aff (Either String BuildResult)
 build logCb buildOptions@{ command: Command cmd args, directory, useNpmDir } = do
